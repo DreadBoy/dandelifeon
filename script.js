@@ -10,18 +10,11 @@ field.setCell(2, 3, new Cell(1));
 field.setCell(12, 12, new Cell(2));
 
 const canvas = document.querySelector('#canvas');
+const buttonStep = document.querySelector('#buttonStep');
+const buttonRun = document.querySelector('#buttonRun');
+
 const game = new Game(canvas, 20);
 game.draw(field);
-
-const button = document.querySelector('#button');
-button.addEventListener('click', () => {
-    field = game.step(field);
-    game.draw(field);
-    if (field.finished) {
-        const mana = game.evaluate(field);
-        alert(`You got ${mana} mana!`);
-    }
-});
 
 canvas.addEventListener('click', (event) => {
     const box = canvas.getBoundingClientRect();
@@ -33,4 +26,39 @@ canvas.addEventListener('click', (event) => {
     cell.value = +!cell.value;
     field.setCell(x, y, cell)
     game.draw(field);
+});
+
+buttonStep.addEventListener('click', () => {
+    field = game.step(field);
+    game.draw(field);
+    if (field.finished) {
+        const mana = game.evaluate(field);
+        alert(`You got ${mana} mana!`);
+    }
+});
+
+let animating = false;
+
+buttonRun.addEventListener('click', () => {
+    const step = () => {
+        if (!animating)
+            return;
+        field = game.step(field);
+        game.draw(field);
+        if (field.finished) {
+            const mana = game.evaluate(field);
+            alert(`You got ${mana} mana!`);
+            animating = false;
+        }
+        else
+            requestAnimationFrame(step);
+    }
+    
+    if (animating) {
+        animating = false;
+    }
+    else {
+        requestAnimationFrame(step);
+        animating = true;
+    }
 });

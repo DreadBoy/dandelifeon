@@ -4,6 +4,7 @@ class Cell {
         this.age = 0;
         if (value > 0)
             this.age = age ? age : 0;
+        this.age = Math.min(this.age, 100);
     }
 }
 
@@ -102,7 +103,7 @@ class Game {
             }
             return new Cell(0);
         });
-        
+
         const criticalNeighbours = result.countAliveCells(center, center);
         if (criticalNeighbours > 0) {
             result.finished = true;
