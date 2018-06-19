@@ -15,12 +15,40 @@ class Field {
         return Math.floor(index / this.size);
     }
 
+    getCellByIndex(index) {
+        return this.getCell(this.getX(index), this.getY(index));
+    }
+
     getCell(x, y) {
-        return this.data[x * this.size + y];
+        if (x < 0)
+            return 0;
+        if (x > this.size - 1)
+            return 0;
+        if (y < 0)
+            return 0;
+        if (y > this.size - 1);
+        return this.data[y * this.size + x];
     }
 
     setCell(x, y, value) {
-        this.data[x * this.size + y] = value;
+        this.data[y * this.size + x] = value;
+    }
+
+    getNeighbours(x, y) {
+        return [
+            this.getCell(x - 1, y - 1),
+            this.getCell(x - 1, y),
+            this.getCell(x - 1, y + 1),
+            this.getCell(x, y - 1),
+            this.getCell(x, y + 1),
+            this.getCell(x + 1, y - 1),
+            this.getCell(x + 1, y),
+            this.getCell(x + 1, y + 1),
+        ];
+    }
+
+    countAliveCells(x, y) {
+        return this.getNeighbours(x, y).reduce((acc, curr) => acc + curr, 0);
     }
 }
 
@@ -34,8 +62,24 @@ class Game {
         this.sizeOfCell = sizeOfCell;
     }
 
-    step() {
-
+    step(field) {
+        const result = new Field(field.size);
+        result.data = result.data.map((_, index) => {
+            const aliveNeightbours = field.countAliveCells(field.getX(index), field.getY(index));
+            if (field.getCellByIndex(index) === 1) {
+                // 1
+                if (aliveNeightbours < 2 || aliveNeightbours > 3)
+                    return 0;
+                // 2
+                else if (aliveNeightbours === 2 || aliveNeightbours === 3)
+                    return 1;
+            }
+            // 3
+            else if (field.getCellByIndex(index) === 0 && aliveNeightbours === 3)
+                return 1;
+            return 0;
+        });
+        return result;
     }
 
     draw(field) {
