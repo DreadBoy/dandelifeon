@@ -1,17 +1,13 @@
 
 let field = new Field(25);
-field.setCell(1, 2, new Cell(1));
-field.setCell(2, 2, new Cell(1));
-field.setCell(3, 2, new Cell(1));
-field.setCell(0, 3, new Cell(1));
-field.setCell(1, 3, new Cell(1));
-field.setCell(2, 3, new Cell(1));
-
 field.setCell(12, 12, new Cell(2));
 
 const canvas = document.querySelector('#canvas');
 const buttonStep = document.querySelector('#buttonStep');
 const buttonRun = document.querySelector('#buttonRun');
+const buttonImport = document.querySelector('#import');
+const buttonExport = document.querySelector('#export');
+const textarea = document.querySelector('#textarea');
 
 const game = new Game(canvas, 20);
 game.draw(field);
@@ -53,7 +49,7 @@ buttonRun.addEventListener('click', () => {
         else
             requestAnimationFrame(step);
     }
-    
+
     if (animating) {
         animating = false;
     }
@@ -61,4 +57,13 @@ buttonRun.addEventListener('click', () => {
         requestAnimationFrame(step);
         animating = true;
     }
+});
+
+buttonExport.addEventListener('click', () => {
+    textarea.value = field.export();
+});
+
+buttonImport.addEventListener('click', () => {
+    field.import(textarea.value);
+    game.draw(field);
 });

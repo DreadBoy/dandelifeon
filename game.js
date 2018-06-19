@@ -62,6 +62,18 @@ class Field {
     countAliveCells(x, y) {
         return this.getNeighbours(x, y).filter(n => n.value === 1).reduce((acc, curr) => acc + curr.value, 0);
     }
+
+    export() {
+        return this.data.map(cell => `${cell.value}|${cell.age}`).join(' ');
+    }
+
+    import(str) {
+        this.data = str.split(' ').map(c => {
+            const data = c.split('|');
+            return new Cell(parseInt(data[0]), data[1]);
+        });
+        this.finished = false;
+    } 
 }
 
 
