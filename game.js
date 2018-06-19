@@ -5,6 +5,7 @@ class Field {
         for (let i = 0; i < size * size; i++)
             this.data[i] = 0;
         this.size = size;
+        this.finished = false;
     }
 
     getX(index) {
@@ -63,32 +64,56 @@ class Game {
     }
 
     step(field) {
+        if (field.finished)
+            return field;
         const result = new Field(field.size);
-        result.data = result.data.map((_, index) => {
-            const aliveNeightbours = field.countAliveCells(field.getX(index), field.getY(index));
-            if (field.getCellByIndex(index) === 1) {
-                // 1
-                if (aliveNeightbours < 2 || aliveNeightbours > 3)
-                    return 0;
-                // 2
-                else if (aliveNeightbours === 2 || aliveNeightbours === 3)
+        const center = Math.floor(field.size / 2);
+        const aliveNeighbours = field.countAliveCells(center, center);
+
+        if (field.getCell(center, center) === 2 && aliveNeighbours > 0) {
+            result.finished = true;
+            result.data = field.data.map(_ => _);
+            return result;
+        }
+        else
+            result.data = result.data.map((_, index) => {
+                const aliveNeighbours = field.countAliveCells(field.getX(index), field.getY(index));
+                if (field.getCellByIndex(index) === 2)
+                    return 2;
+                if (field.getCellByIndex(index) === 1) {
+                    // 1
+                    if (aliveNeighbours < 2 || aliveNeighbours > 3)
+                        return 0;
+                    // 2
+                    else if (aliveNeighbours === 2 || aliveNeighbours === 3)
+                        return 1;
+                }
+                // 3
+                else if (field.getCellByIndex(index) === 0 && aliveNeighbours === 3)
                     return 1;
-            }
-            // 3
-            else if (field.getCellByIndex(index) === 0 && aliveNeightbours === 3)
-                return 1;
-            return 0;
-        });
+                return 0;
+            });
         return result;
     }
 
     draw(field) {
         const size = this.sizeOfCell;
         this.ctx.clearRect(0, 0, this.width, this.height);
-        this.ctx.fillStyle = 'green';
         field.data.forEach((cell, index) => {
-            if (cell === 1)
+            if (cell === 1) {
+                this.ctx.fillStyle = 'MEDIUMSEAGREEN';
                 this.ctx.fillRect(field.getX(index) * size, field.getY(index) * size, size, size);
+            }
+            if (cell === 2) {
+                this.ctx.fillStyle = 'TOMATO';
+                this.ctx.fillRect(field.getX(index) * size, field.getY(index) * size, size, size);
+            }
+
         });
+    }
+
+    evaluate(field) {
+        const mana = field.data.reduce((acc, curr) => curr === 2 ? acc : acc + curr);
+        return mana;
     }
 }
