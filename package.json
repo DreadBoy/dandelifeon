@@ -1,0 +1,23 @@
+{
+  "name": "dandelifeon",
+  "version": "1.0.0",
+  "description": "",
+  "main": "game.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "develop": "tsc --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DreadBoy/dandelifeon.git"
+  },
+  "author": "Matic Leva",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DreadBoy/dandelifeon/issues"
+  },
+  "homepage": "https://github.com/DreadBoy/dandelifeon#readme",
+  "devDependencies": {
+    "typescript": "^2.9.2"
+  }
+}
