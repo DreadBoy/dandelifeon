@@ -74,7 +74,7 @@ class Population {
             .sort((a, b) => b.fitness - a.fitness)
     }
 
-    public displayTable(table: HTMLTableElement, canvas: HTMLCanvasElement) {
+    public static displayTable(population: Population, table: HTMLTableElement, canvas: HTMLCanvasElement) {
         function htmlToElement(html: string) {
             const template = document.createElement('template');
             html = html.trim(); // Never return a text node of whitespace as the result
@@ -84,7 +84,7 @@ class Population {
 
         while (table.firstChild)
             table.removeChild(table.firstChild);
-        this.candidates.forEach((candidate, index) => {
+        population.candidates.forEach((candidate, index) => {
             const row = htmlToElement(`<tr><td>${index}</td><td>${candidate.fitness}</td></tr>`);
             if (row) {
                 row.addEventListener('click', () => {

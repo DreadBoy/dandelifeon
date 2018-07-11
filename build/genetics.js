@@ -49,7 +49,7 @@ class Population {
         this.candidates = this.candidates
             .sort((a, b) => b.fitness - a.fitness);
     }
-    displayTable(table, canvas) {
+    static displayTable(population, table, canvas) {
         function htmlToElement(html) {
             const template = document.createElement('template');
             html = html.trim(); // Never return a text node of whitespace as the result
@@ -58,7 +58,7 @@ class Population {
         }
         while (table.firstChild)
             table.removeChild(table.firstChild);
-        this.candidates.forEach((candidate, index) => {
+        population.candidates.forEach((candidate, index) => {
             const row = htmlToElement(`<tr><td>${index}</td><td>${candidate.fitness}</td></tr>`);
             if (row) {
                 row.addEventListener('click', () => {
