@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "develop": "tsc --watch",
-    "start": "http-server"
+    "start": "http-server -c-1"
   },
   "repository": {
     "type": "git",
