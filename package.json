@@ -5,7 +5,8 @@
   "main": "game.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "develop": "tsc --watch"
+    "develop": "tsc --watch",
+    "start": "http-server"
   },
   "repository": {
     "type": "git",
@@ -18,6 +19,7 @@
   },
   "homepage": "https://github.com/DreadBoy/dandelifeon#readme",
   "devDependencies": {
+    "http-server": "^0.11.1",
     "typescript": "^2.9.2"
   }
 }

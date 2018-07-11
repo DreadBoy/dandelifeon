@@ -1,13 +1,18 @@
 class Cell {
 
+    public value: number;
     public age: number;
 
-    constructor(public value: number, age?: number) {
+    constructor(value: number, age?: number) {
         this.value = value;
         this.age = 0;
         if (value > 0)
             this.age = age ? age : 0;
         this.age = Math.min(this.age, 100);
+    }
+
+    public static random() {
+        return new Cell(Math.random() < 0.5 ? 0 : 1, 0);
     }
 }
 
@@ -15,14 +20,23 @@ class Field {
 
     public data: Cell[];
     public size: number;
-    public finished: boolean;
+    public finished: boolean = false;
 
-    constructor(size: number) {
-        this.data = [];
-        for (let i = 0; i < size * size; i++)
-            this.data[i] = new Cell(0);
-        this.size = size;
-        this.finished = false;
+    constructor(size: number | Field) {
+        if (size instanceof Field) {
+            this.data = size.data.map(cell => new Cell(cell.value, cell.age));
+            this.size = field.size;
+        }
+        else {
+            this.data = [];
+            for (let i = 0; i < size * size; i++)
+                this.data[i] = new Cell(0);
+            this.size = size;
+        }
+    }
+
+    public randomize() {
+        this.data = this.data.map(_ => Cell.random());
     }
 
     getX(index: number) {
@@ -101,7 +115,7 @@ class Game {
     step(field: Field) {
         if (field.finished)
             return field;
-        const result = new Field(field.size);
+        const result = new Field(field);
         const center = Math.floor(field.size / 2);
 
         result.data = result.data.map((_, index) => {
