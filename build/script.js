@@ -1,30 +1,29 @@
 "use strict";
-let field = new Field(25);
-field.setCell(12, 12, new Cell(2));
+let field = new Field();
+field.randomize();
 const canvas = document.querySelector('#canvas');
 const buttonStep = document.querySelector('#buttonStep');
 const buttonRun = document.querySelector('#buttonRun');
 const buttonImport = document.querySelector('#import');
 const buttonExport = document.querySelector('#export');
 const textarea = document.querySelector('#textarea');
-const game = new Game(canvas, 20);
-game.draw(field);
+Game.draw(field, canvas, 25);
 canvas.addEventListener('click', (event) => {
     const box = canvas.getBoundingClientRect();
-    const x = Math.floor((event.clientX - box.left) / game.sizeOfCell);
-    const y = Math.floor((event.clientY - box.top) / game.sizeOfCell);
+    const x = Math.floor((event.clientX - box.left) / 25);
+    const y = Math.floor((event.clientY - box.top) / 25);
     const cell = field.getCell(x, y);
     if (cell.value === 2)
         return;
     cell.value = +!cell.value;
     field.setCell(x, y, cell);
-    game.draw(field);
+    Game.draw(field, canvas, 25);
 });
 buttonStep.addEventListener('click', () => {
-    field = game.step(field);
-    game.draw(field);
+    field = Game.step(field);
+    Game.draw(field, canvas, 25);
     if (field.finished) {
-        const mana = game.evaluate(field);
+        const mana = Game.evaluate(field);
         alert(`You got ${mana} mana!`);
     }
 });
@@ -33,10 +32,10 @@ buttonRun.addEventListener('click', () => {
     const step = () => {
         if (!animating)
             return;
-        field = game.step(field);
-        game.draw(field);
+        field = Game.step(field);
+        Game.draw(field, canvas, 25);
         if (field.finished) {
-            const mana = game.evaluate(field);
+            const mana = Game.evaluate(field);
             alert(`You got ${mana} mana!`);
             animating = false;
         }
@@ -56,6 +55,6 @@ buttonExport.addEventListener('click', () => {
 });
 buttonImport.addEventListener('click', () => {
     field.import(textarea.value);
-    game.draw(field);
+    Game.draw(field, canvas, 25);
 });
 //# sourceMappingURL=script.js.map

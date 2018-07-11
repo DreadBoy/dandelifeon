@@ -12,21 +12,27 @@ class Cell {
     }
 }
 class Field {
-    constructor(size) {
+    constructor(param) {
         this.finished = false;
-        if (size instanceof Field) {
-            this.data = size.data.map(cell => new Cell(cell.value, cell.age));
+        if (param instanceof Field) {
+            this.data = param.data.map(cell => new Cell(cell.value, cell.age));
             this.size = field.size;
+        }
+        else if (Array.isArray(param)) {
+            this.data = param.map(value => new Cell(value, 0));
+            this.size = Math.sqrt(param.length);
         }
         else {
             this.data = [];
-            for (let i = 0; i < size * size; i++)
+            for (let i = 0; i < Field.sizeOfField * Field.sizeOfField; i++)
                 this.data[i] = new Cell(0);
-            this.size = size;
+            this.size = Field.sizeOfField;
         }
     }
     randomize() {
         this.data = this.data.map(_ => Cell.random());
+        const center = Math.floor(Field.sizeOfField / 2);
+        this.setCell(center, center, new Cell(2));
     }
     getX(index) {
         return index % this.size;
@@ -77,14 +83,9 @@ class Field {
         this.finished = false;
     }
 }
+Field.sizeOfField = 25;
 class Game {
-    constructor(canvas, sizeOfCell) {
-        this.height = canvas.height = 25 * sizeOfCell;
-        this.width = canvas.width = 25 * sizeOfCell;
-        this.ctx = canvas.getContext("2d");
-        this.sizeOfCell = sizeOfCell;
-    }
-    step(field) {
+    static step(field) {
         if (field.finished)
             return field;
         const result = new Field(field);
@@ -117,27 +118,34 @@ class Game {
         }
         return result;
     }
-    draw(field) {
-        const size = this.sizeOfCell;
-        this.ctx.clearRect(0, 0, this.width, this.height);
+    static draw(field, canvas, sizeOfCell) {
+        const height = canvas.height = Field.sizeOfField * sizeOfCell;
+        const width = canvas.width = Field.sizeOfField * sizeOfCell;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, width, height);
         field.data.forEach((cell, index) => {
             if (cell.value === 1) {
-                this.ctx.fillStyle = 'MEDIUMSEAGREEN';
-                this.ctx.fillRect(field.getX(index) * size, field.getY(index) * size, size, size);
+                ctx.fillStyle = 'MEDIUMSEAGREEN';
+                ctx.fillRect(field.getX(index) * sizeOfCell, field.getY(index) * sizeOfCell, sizeOfCell, sizeOfCell);
             }
             if (cell.value === 2) {
-                this.ctx.fillStyle = 'TOMATO';
-                this.ctx.fillRect(field.getX(index) * size, field.getY(index) * size, size, size);
+                ctx.fillStyle = 'TOMATO';
+                ctx.fillRect(field.getX(index) * sizeOfCell, field.getY(index) * sizeOfCell, sizeOfCell, sizeOfCell);
             }
-            this.ctx.fillStyle = 'black';
+            ctx.fillStyle = 'black';
             if (cell.age > 0)
-                this.ctx.fillText(cell.age.toString(), field.getX(index) * size + size / 4, field.getY(index) * size + size / 4 * 3);
+                ctx.fillText(cell.age.toString(), field.getX(index) * sizeOfCell + sizeOfCell / 4, field.getY(index) * sizeOfCell + sizeOfCell / 4 * 3);
         });
     }
-    evaluate(field) {
+    static evaluate(field) {
         const center = Math.floor(field.size / 2);
-        const mana = field.getNeighbours(center, center).reduce((acc, curr) => curr.value === 2 ? acc : acc + curr.value * curr.age, 0);
-        return mana;
+        return field.getNeighbours(center, center).reduce((acc, curr) => curr.value === 2 ? acc : acc + curr.value * curr.age, 0);
+    }
+    static simulateAndEvaluate(field) {
+        for (let i = 0; i < 100; i++) {
+            field = this.step(field);
+        }
+        return this.evaluate(field);
     }
 }
 //# sourceMappingURL=game.js.map

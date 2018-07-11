@@ -2,7 +2,7 @@
 class Population {
     constructor(number) {
         this.candidates = new Array(number).fill(0).map(_ => {
-            const field = new Field(25);
+            const field = new Field();
             field.randomize();
             return field;
         });

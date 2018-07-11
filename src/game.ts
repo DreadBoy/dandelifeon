@@ -21,22 +21,29 @@ class Field {
     public data: Cell[];
     public size: number;
     public finished: boolean = false;
+    public static readonly sizeOfField = 25;
 
-    constructor(size: number | Field) {
-        if (size instanceof Field) {
-            this.data = size.data.map(cell => new Cell(cell.value, cell.age));
+    constructor(param?: Field | number[]) {
+        if (param instanceof Field) {
+            this.data = param.data.map(cell => new Cell(cell.value, cell.age));
             this.size = field.size;
+        }
+        else if (Array.isArray(param)) {
+            this.data = param.map(value => new Cell(value, 0));
+            this.size = Math.sqrt(param.length);
         }
         else {
             this.data = [];
-            for (let i = 0; i < size * size; i++)
+            for (let i = 0; i < Field.sizeOfField * Field.sizeOfField; i++)
                 this.data[i] = new Cell(0);
-            this.size = size;
+            this.size = Field.sizeOfField;
         }
     }
 
     public randomize() {
         this.data = this.data.map(_ => Cell.random());
+        const center = Math.floor(Field.sizeOfField / 2);
+        this.setCell(center, center, new Cell(2));
     }
 
     getX(index: number) {
@@ -100,19 +107,7 @@ class Field {
 
 class Game {
 
-    private height: number;
-    private width: number;
-    private ctx: CanvasRenderingContext2D;
-    public sizeOfCell: number;
-
-    constructor(canvas: HTMLCanvasElement, sizeOfCell: number) {
-        this.height = canvas.height = 25 * sizeOfCell;
-        this.width = canvas.width = 25 * sizeOfCell;
-        this.ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-        this.sizeOfCell = sizeOfCell;
-    }
-
-    step(field: Field) {
+    static step(field: Field): Field {
         if (field.finished)
             return field;
         const result = new Field(field);
@@ -149,29 +144,37 @@ class Game {
         return result;
     }
 
-    draw(field: Field) {
-        const size = this.sizeOfCell;
-        this.ctx.clearRect(0, 0, this.width, this.height);
+    static draw(field: Field, canvas: HTMLCanvasElement, sizeOfCell: number) {
+        const height = canvas.height = Field.sizeOfField * sizeOfCell;
+        const width = canvas.width = Field.sizeOfField * sizeOfCell;
+        const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
+
+        ctx.clearRect(0, 0, width, height);
         field.data.forEach((cell, index) => {
             if (cell.value === 1) {
-                this.ctx.fillStyle = 'MEDIUMSEAGREEN';
-                this.ctx.fillRect(field.getX(index) * size, field.getY(index) * size, size, size);
+                ctx.fillStyle = 'MEDIUMSEAGREEN';
+                ctx.fillRect(field.getX(index) * sizeOfCell, field.getY(index) * sizeOfCell, sizeOfCell, sizeOfCell);
             }
             if (cell.value === 2) {
-                this.ctx.fillStyle = 'TOMATO';
-                this.ctx.fillRect(field.getX(index) * size, field.getY(index) * size, size, size);
+                ctx.fillStyle = 'TOMATO';
+                ctx.fillRect(field.getX(index) * sizeOfCell, field.getY(index) * sizeOfCell, sizeOfCell, sizeOfCell);
             }
-            this.ctx.fillStyle = 'black';
+            ctx.fillStyle = 'black';
             if (cell.age > 0)
-                this.ctx.fillText(cell.age.toString(), field.getX(index) * size + size / 4, field.getY(index) * size + size / 4 * 3)
+                ctx.fillText(cell.age.toString(), field.getX(index) * sizeOfCell + sizeOfCell / 4, field.getY(index) * sizeOfCell + sizeOfCell / 4 * 3)
 
         });
     }
 
-    evaluate(field: Field) {
-
+    static evaluate(field: Field): number {
         const center = Math.floor(field.size / 2);
-        const mana = field.getNeighbours(center, center).reduce((acc, curr) => curr.value === 2 ? acc : acc + curr.value * curr.age, 0);
-        return mana;
+        return field.getNeighbours(center, center).reduce((acc, curr) => curr.value === 2 ? acc : acc + curr.value * curr.age, 0);
+    }
+
+    static simulateAndEvaluate(field: Field): number {
+        for (let i = 0; i < 100; i++) {
+            field = this.step(field);
+        }
+        return this.evaluate(field);
     }
 }
