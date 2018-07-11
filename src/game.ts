@@ -10,10 +10,6 @@ class Cell {
             this.age = age ? age : 0;
         this.age = Math.min(this.age, 100);
     }
-
-    public static random() {
-        return new Cell(Math.random() < 0.5 ? 0 : 1, 0);
-    }
 }
 
 class Field {
@@ -26,7 +22,7 @@ class Field {
     constructor(param?: Field | number[]) {
         if (param instanceof Field) {
             this.data = param.data.map(cell => new Cell(cell.value, cell.age));
-            this.size = field.size;
+            this.size = param.size;
         }
         else if (Array.isArray(param)) {
             this.data = param.map(value => new Cell(value, 0));
@@ -38,10 +34,6 @@ class Field {
                 this.data[i] = new Cell(0);
             this.size = Field.sizeOfField;
         }
-    }
-
-    public randomize() {
-        this.data = this.data.map(_ => Cell.random());
         const center = Math.floor(Field.sizeOfField / 2);
         this.setCell(center, center, new Cell(2));
     }
@@ -90,22 +82,11 @@ class Field {
     countAliveCells(x: number, y: number) {
         return this.getNeighbours(x, y).filter(n => n.value === 1).reduce((acc, curr) => acc + curr.value, 0);
     }
-
-    export() {
-        return this.data.map(cell => `${cell.value}|${cell.age}`).join(' ');
-    }
-
-    import(str: string) {
-        this.data = str.split(' ').map(c => {
-            const data = c.split('|');
-            return new Cell(parseInt(data[0]), parseInt(data[1]));
-        });
-        this.finished = false;
-    }
 }
 
-
 class Game {
+
+    public static readonly sizeOfCell = 15;
 
     static step(field: Field): Field {
         if (field.finished)

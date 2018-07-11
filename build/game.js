@@ -7,16 +7,13 @@ class Cell {
             this.age = age ? age : 0;
         this.age = Math.min(this.age, 100);
     }
-    static random() {
-        return new Cell(Math.random() < 0.5 ? 0 : 1, 0);
-    }
 }
 class Field {
     constructor(param) {
         this.finished = false;
         if (param instanceof Field) {
             this.data = param.data.map(cell => new Cell(cell.value, cell.age));
-            this.size = field.size;
+            this.size = param.size;
         }
         else if (Array.isArray(param)) {
             this.data = param.map(value => new Cell(value, 0));
@@ -28,9 +25,6 @@ class Field {
                 this.data[i] = new Cell(0);
             this.size = Field.sizeOfField;
         }
-    }
-    randomize() {
-        this.data = this.data.map(_ => Cell.random());
         const center = Math.floor(Field.sizeOfField / 2);
         this.setCell(center, center, new Cell(2));
     }
@@ -71,16 +65,6 @@ class Field {
     }
     countAliveCells(x, y) {
         return this.getNeighbours(x, y).filter(n => n.value === 1).reduce((acc, curr) => acc + curr.value, 0);
-    }
-    export() {
-        return this.data.map(cell => `${cell.value}|${cell.age}`).join(' ');
-    }
-    import(str) {
-        this.data = str.split(' ').map(c => {
-            const data = c.split('|');
-            return new Cell(parseInt(data[0]), parseInt(data[1]));
-        });
-        this.finished = false;
     }
 }
 Field.sizeOfField = 25;
@@ -148,4 +132,5 @@ class Game {
         return this.evaluate(field);
     }
 }
+Game.sizeOfCell = 15;
 //# sourceMappingURL=game.js.map
