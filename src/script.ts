@@ -20,16 +20,19 @@ buttonEvaluate.addEventListener('click', () => {
     if (!population)
         return;
     population.sort();
-    Population.displayTable(population, table, canvas);
+    Population.displayTable(population, iteration, table, canvas);
     Game.draw(new Field(population.candidates[0].values), canvas, Game.sizeOfCell);
 });
 
 worker.onmessage = (event: StepEvent) => {
     population = event.data;
-    Population.displayTable(population, table, canvas);
+    Population.displayTable(population, iteration, table, canvas);
     Game.draw(new Field(population.candidates[0].values), canvas, Game.sizeOfCell);
+    console.log(`Iteration ${
+        iteration}: ${
+        population.candidates[0].fitness}, mana: ${
+        Game.runAndEvaluate(new Field(population.candidates[0].values))}`, '');
     iteration++;
-    console.log(`Iteration ${iteration}: ${population.candidates[0].fitness}`, '');
     if (iteration < Population.Populations)
         worker.postMessage(population);
 };
@@ -38,3 +41,4 @@ buttonRun.addEventListener('click', () => {
     if (iteration < Population.Populations)
         worker.postMessage(population);
 });
+buttonRun.click();

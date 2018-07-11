@@ -2,7 +2,7 @@
 class Candidate {
     constructor(values) {
         this.values = values;
-        this.fitness = Game.simulateAndEvaluate(new Field(values));
+        this.fitness = Game.getFitness(new Field(values));
     }
 }
 class Population {
@@ -28,7 +28,8 @@ class Population {
         return new Candidate(values);
     }
     static breedCandidates(parent1, parent2) {
-        return this.mutateCandidate(this.singlePointCrossover(parent1, parent2));
+        const method = this.uniformCrossover;
+        return this.mutateCandidate(method(parent1, parent2));
     }
     static createNewGeneration(population) {
         const cutoff = Math.floor(this.Winners * this.Cutoff);
@@ -36,7 +37,7 @@ class Population {
             .fill(0)
             .map(() => population.candidates[Math.floor(Math.random() * (this.PopulationSize - cutoff)) + cutoff]);
         const winners = population.candidates.slice(0, cutoff).concat(rest);
-        while (winners.length <= population.candidates.length) {
+        while (winners.length <= Population.PopulationSize) {
             const parent1 = randomFromArray(winners);
             const parent2 = randomFromArray(winners);
             if (parent1 === parent2)
@@ -49,7 +50,7 @@ class Population {
         this.candidates = this.candidates
             .sort((a, b) => b.fitness - a.fitness);
     }
-    static displayTable(population, table, canvas) {
+    static displayTable(population, iteration, table, canvas) {
         function htmlToElement(html) {
             const template = document.createElement('template');
             html = html.trim(); // Never return a text node of whitespace as the result
@@ -58,11 +59,14 @@ class Population {
         }
         while (table.firstChild)
             table.removeChild(table.firstChild);
+        const header = htmlToElement(`<tr><th>Iteration ${iteration}</th><th>Candidate fitness</th></tr>`);
+        table.appendChild(header);
         population.candidates.forEach((candidate, index) => {
             const row = htmlToElement(`<tr><td>${index}</td><td>${candidate.fitness}</td></tr>`);
             if (row) {
                 row.addEventListener('click', () => {
                     Game.draw(new Field(candidate.values), canvas, Game.sizeOfCell);
+                    console.log(new Field(population.candidates[0].values).export());
                 });
                 table.appendChild(row);
             }
@@ -71,12 +75,27 @@ class Population {
 }
 Population.Populations = 10000;
 Population.PopulationSize = 100;
-Population.Winners = 10;
+Population.Winners = 40;
 Population.Cutoff = 0.5;
-Population.MutationStrength = 5;
+Population.MutationStrength = 10;
 Population.singlePointCrossover = (parent1, parent2) => {
     const index = Math.floor(Math.random() * parent1.values.length);
     return new Candidate(parent1.values.slice(0, index).concat(parent2.values.slice(index)));
+};
+Population.twoPointCrossover = (parent1, parent2) => {
+    const index = Math.floor(Math.random() * parent1.values.length);
+    let index2 = -1;
+    while (index === index2 || index2 === -1)
+        index2 = Math.floor(Math.random() * parent1.values.length);
+    const index1 = Math.min(index, index2);
+    index2 = Math.max(index, index2);
+    return new Candidate(parent1.values.slice(0, index1)
+        .concat(parent2.values.slice(index1, index2))
+        .concat(parent1.values.slice(index2)));
+};
+Population.uniformCrossover = (parent1, parent2) => {
+    const bits = parent1.values.map((_, index) => Math.random() < 0.5 ? parent1.values[index] : parent2.values[index]);
+    return new Candidate(bits);
 };
 function randomFromArray(array) {
     return array[Math.floor(Math.random() * array.length)];

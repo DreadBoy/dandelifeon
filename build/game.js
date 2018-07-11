@@ -66,6 +66,9 @@ class Field {
     countAliveCells(x, y) {
         return this.getNeighbours(x, y).filter(n => n.value === 1).reduce((acc, curr) => acc + curr.value, 0);
     }
+    export() {
+        return this.data.map(cell => `${cell.value}|${cell.age}`).join(' ');
+    }
 }
 Field.sizeOfField = 25;
 class Game {
@@ -125,11 +128,15 @@ class Game {
         const center = Math.floor(field.size / 2);
         return field.getNeighbours(center, center).reduce((acc, curr) => curr.value === 2 ? acc : acc + curr.value * curr.age, 0);
     }
-    static simulateAndEvaluate(field) {
+    static runAndEvaluate(field) {
         for (let i = 0; i < 100; i++) {
             field = this.step(field);
         }
         return this.evaluate(field);
+    }
+    static getFitness(field) {
+        const numberOfEmptyBlocks = field.data.filter(cell => cell.value === 0).length;
+        return this.runAndEvaluate(field) * 0.3 + numberOfEmptyBlocks * 0.7;
     }
 }
 Game.sizeOfCell = 15;
