@@ -11,9 +11,10 @@ class Candidate {
 class Population {
 
     public candidates: Candidate[];
+    public static readonly Populations = 10000;
     public static readonly PopulationSize = 100;
     public static readonly Winners = 10;
-    public static readonly Cutoff = 0.8;
+    public static readonly Cutoff = 0.5;
     public static readonly MutationStrength = 5;
 
     constructor(candidates?: Candidate[]) {
@@ -41,8 +42,13 @@ class Population {
         return new Candidate(values);
     }
 
-    public static crossoverCandidates(parent1: Candidate, parent2: Candidate): Candidate {
-        return this.mutateCandidate(parent1);
+    public static singlePointCrossover = (parent1: Candidate, parent2: Candidate): Candidate => {
+        const index = Math.floor(Math.random() * parent1.values.length);
+        return new Candidate(parent1.values.slice(0, index).concat(parent2.values.slice(index)));
+    };
+
+    public static breedCandidates(parent1: Candidate, parent2: Candidate): Candidate {
+        return this.mutateCandidate(this.singlePointCrossover(parent1, parent2));
     }
 
     public static createNewGeneration(population: Population): Population {
@@ -58,7 +64,7 @@ class Population {
             const parent2 = randomFromArray(winners);
             if (parent1 === parent2)
                 continue;
-            winners.push(Population.crossoverCandidates(parent1, parent2));
+            winners.push(Population.breedCandidates(parent1, parent2));
         }
         return new Population(winners);
     }

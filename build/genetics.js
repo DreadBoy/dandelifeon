@@ -27,8 +27,8 @@ class Population {
         }
         return new Candidate(values);
     }
-    static crossoverCandidates(parent1, parent2) {
-        return this.mutateCandidate(parent1);
+    static breedCandidates(parent1, parent2) {
+        return this.mutateCandidate(this.singlePointCrossover(parent1, parent2));
     }
     static createNewGeneration(population) {
         const cutoff = Math.floor(this.Winners * this.Cutoff);
@@ -41,7 +41,7 @@ class Population {
             const parent2 = randomFromArray(winners);
             if (parent1 === parent2)
                 continue;
-            winners.push(Population.crossoverCandidates(parent1, parent2));
+            winners.push(Population.breedCandidates(parent1, parent2));
         }
         return new Population(winners);
     }
@@ -69,10 +69,15 @@ class Population {
         });
     }
 }
+Population.Populations = 10000;
 Population.PopulationSize = 100;
 Population.Winners = 10;
-Population.Cutoff = 0.8;
+Population.Cutoff = 0.5;
 Population.MutationStrength = 5;
+Population.singlePointCrossover = (parent1, parent2) => {
+    const index = Math.floor(Math.random() * parent1.values.length);
+    return new Candidate(parent1.values.slice(0, index).concat(parent2.values.slice(index)));
+};
 function randomFromArray(array) {
     return array[Math.floor(Math.random() * array.length)];
 }
