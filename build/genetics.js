@@ -28,7 +28,7 @@ class Population {
         return new Candidate(values);
     }
     static breedCandidates(parent1, parent2) {
-        const method = this.uniformCrossover;
+        const method = this.twoPointCrossover;
         return this.mutateCandidate(method(parent1, parent2));
     }
     static createNewGeneration(population) {
@@ -46,11 +46,17 @@ class Population {
         }
         return new Population(winners);
     }
+    static bestFitness(population) {
+        return this.bestCandidate(population).fitness;
+    }
+    static bestCandidate(population) {
+        return population.candidates[0];
+    }
     sort() {
         this.candidates = this.candidates
             .sort((a, b) => b.fitness - a.fitness);
     }
-    static displayTable(population, iteration, table, canvas) {
+    static displayResults(populations, iterations, table) {
         function htmlToElement(html) {
             const template = document.createElement('template');
             html = html.trim(); // Never return a text node of whitespace as the result
@@ -59,14 +65,22 @@ class Population {
         }
         while (table.firstChild)
             table.removeChild(table.firstChild);
-        const header = htmlToElement(`<tr><th>Iteration ${iteration}</th><th>Candidate fitness</th></tr>`);
+        const header = htmlToElement(`<tr><th>Population</th><th>Iteration</th><th>Best fitness</th><th>Best mana</th></tr>`);
         table.appendChild(header);
-        population.candidates.forEach((candidate, index) => {
-            const row = htmlToElement(`<tr><td>${index}</td><td>${candidate.fitness}</td></tr>`);
+        populations
+            .map((pop, index) => ({
+            index,
+            pop,
+            it: iterations[index],
+        }))
+            .sort((a, b) => Population.bestFitness(b.pop) - Population.bestFitness(a.pop))
+            .forEach(obj => {
+            const best = Population.bestCandidate(obj.pop);
+            const field = new Field(best.values);
+            const row = htmlToElement(`<tr><td>${obj.index}</td><td>${obj.it}</td><td>${best.fitness}</td><td>${Game.runAndEvaluate(field)}</td></tr>`);
             if (row) {
                 row.addEventListener('click', () => {
-                    Game.draw(new Field(candidate.values), canvas, Game.sizeOfCell);
-                    console.log(new Field(population.candidates[0].values).export());
+                    console.log(field.export());
                 });
                 table.appendChild(row);
             }

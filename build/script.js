@@ -1,38 +1,43 @@
 "use strict";
-let worker = new Worker('build/worker.js');
-let population;
-let iteration = 0;
+let workers = new Array(10).fill(undefined);
+let populations = [];
+let iterations = new Array(workers.length).fill(0);
+let bestPopulation;
 const canvas = document.querySelector('#canvas');
-const buttonGenerate = document.querySelector('#buttonGenerate');
-const buttonEvaluate = document.querySelector('#buttonEvaluate');
 const buttonRun = document.querySelector('#buttonRun');
+const buttonStop = document.querySelector('#buttonStop');
 const table = document.querySelector('#table');
-buttonGenerate.addEventListener('click', () => {
-    if (!population)
-        population = new Population();
-    else {
-        population = Population.createNewGeneration(population);
+buttonRun.addEventListener('click', () => {
+    if (iterations.reduce((acc, curr) => acc + curr) === 0) {
+        workers = workers.map(() => new Worker('build/worker.js'));
+        workers.forEach((worker, index) => {
+            worker.onmessage = (event) => {
+                populations[index] = event.data;
+                Population.displayResults(populations, iterations, table);
+                const bestFitness = bestPopulation ? Population.bestFitness(bestPopulation) : 0;
+                if (Population.bestFitness(populations[index]) > bestFitness) {
+                    bestPopulation = populations[index];
+                    const field = new Field(bestPopulation.candidates[0].values);
+                    Game.draw(field, canvas, Game.sizeOfCell);
+                    // console.log(`Population ${index}, iteration ${
+                    //     iterations[index]}, fitness ${
+                    //     populations[index].candidates[0].fitness}, mana ${
+                    //     Game.runAndEvaluate(field)}, export ${
+                    //     field.export()
+                    //     }`, '');
+                }
+                iterations[index]++;
+                if (iterations[index] < Population.Populations)
+                    worker.postMessage(populations[index]);
+            };
+            worker.postMessage(undefined);
+        });
     }
 });
-buttonEvaluate.addEventListener('click', () => {
-    if (!population)
-        return;
-    population.sort();
-    Population.displayTable(population, iteration, table, canvas);
-    Game.draw(new Field(population.candidates[0].values), canvas, Game.sizeOfCell);
-});
-worker.onmessage = (event) => {
-    population = event.data;
-    Population.displayTable(population, iteration, table, canvas);
-    Game.draw(new Field(population.candidates[0].values), canvas, Game.sizeOfCell);
-    console.log(`Iteration ${iteration}: ${population.candidates[0].fitness}, mana: ${Game.runAndEvaluate(new Field(population.candidates[0].values))}`, '');
-    iteration++;
-    if (iteration < Population.Populations)
-        worker.postMessage(population);
-};
-buttonRun.addEventListener('click', () => {
-    if (iteration < Population.Populations)
-        worker.postMessage(population);
+buttonStop.addEventListener('click', () => {
+    workers.forEach(worker => worker.terminate());
+    populations = [];
+    iterations = new Array(workers.length).fill(0);
 });
 buttonRun.click();
 //# sourceMappingURL=script.js.map

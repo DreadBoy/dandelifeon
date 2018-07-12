@@ -11,6 +11,7 @@ class Candidate {
 class Population {
 
     public candidates: Candidate[];
+
     public static readonly Populations = 10000;
     public static readonly PopulationSize = 100;
     public static readonly Winners = 40;
@@ -28,6 +29,7 @@ class Population {
                         .fill(0)
                         .map(() => Math.random() > 0.5 ? 1 : 0))
                 );
+
     }
 
     public static mutateCandidate(candidate: Candidate): Candidate {
@@ -65,7 +67,7 @@ class Population {
     };
 
     public static breedCandidates(parent1: Candidate, parent2: Candidate): Candidate {
-        const method = this.uniformCrossover;
+        const method = this.twoPointCrossover;
         return this.mutateCandidate(method(parent1, parent2));
     }
 
@@ -87,12 +89,20 @@ class Population {
         return new Population(winners);
     }
 
+    public static bestFitness(population: Population): number {
+        return this.bestCandidate(population).fitness;
+    }
+
+    public static bestCandidate(population: Population): Candidate {
+        return population.candidates[0];
+    }
+
     public sort() {
         this.candidates = this.candidates
             .sort((a, b) => b.fitness - a.fitness)
     }
 
-    public static displayTable(population: Population, iteration: number, table: HTMLTableElement, canvas: HTMLCanvasElement) {
+    public static displayResults(populations: Population[], iterations: number[], table: HTMLTableElement) {
         function htmlToElement(html: string) {
             const template = document.createElement('template');
             html = html.trim(); // Never return a text node of whitespace as the result
@@ -102,18 +112,30 @@ class Population {
 
         while (table.firstChild)
             table.removeChild(table.firstChild);
-        const header = htmlToElement(`<tr><th>Iteration ${iteration}</th><th>Candidate fitness</th></tr>`) as Node;
+        const header = htmlToElement(`<tr><th>Population</th><th>Iteration</th><th>Best fitness</th><th>Best mana</th></tr>`) as Node;
         table.appendChild(header);
-        population.candidates.forEach((candidate, index) => {
-            const row = htmlToElement(`<tr><td>${index}</td><td>${candidate.fitness}</td></tr>`);
-            if (row) {
-                row.addEventListener('click', () => {
-                    Game.draw(new Field(candidate.values), canvas, Game.sizeOfCell);
-                    console.log(new Field(population.candidates[0].values).export());
-                });
-                table.appendChild(row);
-            }
-        });
+        populations
+            .map((pop, index) => ({
+                index,
+                pop,
+                it: iterations[index],
+            }))
+            .sort((a, b) => Population.bestFitness(b.pop) - Population.bestFitness(a.pop))
+            .forEach(obj => {
+                const best = Population.bestCandidate(obj.pop);
+                const field = new Field(best.values);
+                const row = htmlToElement(`<tr><td>${
+                    obj.index}</td><td>${
+                    obj.it}</td><td>${
+                    best.fitness}</td><td>${
+                    Game.runAndEvaluate(field)}</td></tr>`);
+                if (row) {
+                    row.addEventListener('click', () => {
+                        console.log(field.export());
+                    });
+                    table.appendChild(row);
+                }
+            });
     }
 }
 
